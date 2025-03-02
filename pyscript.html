@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Perceptron Classifier: L vs. T</title>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        .grid-container { display: flex; flex-direction: column; align-items: center; background: rgb(255, 255, 255); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
+        .grid { display: grid; grid-template-columns: repeat(4, 80px); gap: 8px; margin-top: 15px; padding: 10px; background: #ffffff; border-radius: 10px; }
+        .cell { width: 80px; height: 80px; border: 2px solid #333; text-align: center; line-height: 80px; font-size: 20px; background-color: #fff; cursor: pointer; transition: background-color 0.2s; }
+        .selected { background-color: rgb(32, 71, 105); }
+        #input-array { margin-top: 10px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <h2>Perceptron Classifier: L vs. T</h2>
+    <div id="grid" class="grid"></div>
+    <p id="input-array">Selected Pattern: []</p>
+    <button id="predict">Predict</button>
+    <p id="output"></p>
+
+    <script>
+        const grid = document.getElementById("grid");
+        const output = document.getElementById("output");
+        const inputArrayDisplay = document.getElementById("input-array");
+        const weights = Array(16).fill(0);  
+        let bias = 0, lr = 0.1;
+
+        const trainingData = [
+            { input: [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0], label: 1 },
+            { input: [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0], label: -1 },
+            { input: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0], label: 1 },
+            { input: [0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0], label: -1 },
+            { input: [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0], label: 1 },
+            { input: [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0], label: -1 },
+            { input: [1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0], label: -1 },
+            { input: [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1], label: -1 },
+            { input: [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1], label: 1 },
+            { input: [1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], label: 1 }
+        ];
+
+
+        for (let epoch = 0; epoch < 20; epoch++) {
+            trainingData.forEach(({ input, label }) => {
+                const pred = Math.sign(input.reduce((sum, v, i) => sum + v * weights[i], bias));
+                const error = label - pred;
+                if (error) input.forEach((v, i) => weights[i] += lr * error * v);
+                bias += lr * error;
+            });
+        }
+
+        grid.innerHTML = '<div class="cell"></div>'.repeat(16);
+        const cells = [...grid.children];
+
+        grid.addEventListener("click", e => {
+            if (e.target.classList.contains("cell")) {
+                e.target.classList.toggle("selected");
+                updateInputArrayDisplay();
+            }
+        });
+
+        function updateInputArrayDisplay() {
+            const input = cells.map(cell => cell.classList.contains("selected") ? 1 : 0);
+            inputArrayDisplay.innerText = `Selected Pattern: [${input.join(", ")}]`;
+        }
+
+        document.getElementById("predict").addEventListener("click", () => {
+            const input = cells.map(cell => cell.classList.contains("selected") ? 1 : 0);
+            const pred = input.reduce((sum, v, i) => sum + v * weights[i], bias) >= 0 ? 'L' : 'T';
+            output.innerText = `Prediction: ${pred}`;
+        });
+
+        updateInputArrayDisplay();
+    </script>
+</body>
+</html>
